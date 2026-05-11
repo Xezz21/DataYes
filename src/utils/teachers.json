@@ -1,139 +1,19 @@
 [
-  {
-    "id": 1,
-    "name": "Г. Дул",
-    "role": "English Teacher & College Counselor",
-    "department": "Department of Social Sciences",
-    "email": "dul@nhs.edu.mn",
-    "password": "dul1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Dul"
-  },
-  {
-    "id": 2,
-    "name": "А. Жавзандулам",
-    "role": "Literature Teacher",
-    "department": "Department of Social Sciences",
-    "password": "javzandulam1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Javzandulam"
-  },
-  {
-    "id": 3,
-    "name": "Г. Адьяахүү",
-    "role": "Math Teacher",
-    "department": "Department of Physical Sciences",
-    "password": "adiyaakhuu1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Adiyaakhuu"
-  },
-  {
-    "id": 4,
-    "name": "Д. Ранцэнхорлоо",
-    "role": "Math Teacher",
-    "department": "Department of Physical Sciences",
-    "password": "rantsenkhorloo1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Rantsenkhorloo"
-  },
-  {
-    "id": 5,
-    "name": "Д. Оюунтуяа",
-    "role": "Math Teacher",
-    "department": "Department of Physical Sciences",
-    "password": "oyuuntuyaa1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Oyuuntuyaa"
-  },
-  {
-    "id": 6,
-    "name": "М. Батхишиг",
-    "role": "Chemistry Teacher",
-    "department": "Department of Physical Sciences",
-    "password": "batkhishig1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Batkhishig"
-  },
-  {
-    "id": 7,
-    "name": "С. Болдбаатар",
-    "role": "Physics Teacher",
-    "department": "Department of Physical Sciences",
-    "password": "boldbaatar1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Boldbaatar"
-  },
-  {
-    "id": 8,
-    "name": "Лавениа",
-    "role": "English Teacher",
-    "department": "Department of Social Sciences",
-    "password": "lavenia1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Lavenia"
-  },
-  {
-    "id": 9,
-    "name": "Д. Мөнхбаатар",
-    "role": "English Teacher",
-    "department": "Department of Social Sciences",
-    "password": "munkhbaatar1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Munkhbaatar"
-  },
-  {
-    "id": 10,
-    "name": "Т. Лхагважаргал",
-    "role": "English Teacher",
-    "department": "Department of Social Sciences",
-    "password": "lkhagvajargal1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Lkhagvajargal"
-  },
-  {
-    "id": 11,
-    "name": "Т. Чантсалням",
-    "role": "Sociology Teacher",
-    "department": "Department of Social Sciences",
-    "password": "chantsalnyam1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Chantsalnyam"
-  },
-  {
-    "id": 12,
-    "name": "О. Усухбаатар",
-    "role": "IT Teacher",
-    "department": "IT Department",
-    "password": "usukhbaatar1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Usukhbaatar"
-  },
-  {
-    "id": 13,
-    "name": "Б. Барханасболд",
-    "role": "IT Teacher",
-    "department": "IT Department",
-    "password": "barkhasbold1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Barkhasbold"
-  },
-  {
-    "id": 14,
-    "name": "С. Тэмүүжин",
-    "role": "IT Developer",
-    "department": "IT Department",
-    "password": "temuujin1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Temuujin"
-  },
-  {
-    "id": 15,
-    "name": "Э. Мөнх-Оргил",
-    "role": "IT Teacher",
-    "department": "IT Department",
-    "password": "munkhorgil1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=MunkhOrgil"
-  },
-  {
-    "id": 16,
-    "name": "Б. Оргил",
-    "role": "IT Developer",
-    "department": "IT Department",
-    "password": "orgil1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Orgil"
-  },
-  {
-    "id": 17,
-    "name": "Н. Зүнбилэг",
-    "role": "IT Developer",
-    "department": "IT Department",
-    "password": "zunbileg1234",
-    "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Zunbileg"
-  }
+  { "id": 1, "name": "G. Dul", "role": "English Teacher & College Counselor", "department": "Department of Social Sciences", "email": "dul@nhs.edu.mn", "password": "dul1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Dul" },
+  { "id": 2, "name": "A. Javzandulam", "role": "Literature Teacher", "department": "Department of Social Sciences", "password": "javzandulam1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Javzandulam" },
+  { "id": 3, "name": "G. Adiyaakhuu", "role": "Math Teacher", "department": "Department of Physical Sciences", "password": "adiyaakhuu1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Adiyaakhuu" },
+  { "id": 4, "name": "D. Rantsenkhorloo", "role": "Math Teacher", "department": "Department of Physical Sciences", "password": "rantsenkhorloo1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Rantsenkhorloo" },
+  { "id": 5, "name": "D. Oyuuntuyaa", "role": "Math Teacher", "department": "Department of Physical Sciences", "password": "oyuuntuyaa1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Oyuuntuyaa" },
+  { "id": 6, "name": "M. Batkhishig", "role": "Chemistry Teacher", "department": "Department of Physical Sciences", "password": "batkhishig1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Batkhishig" },
+  { "id": 7, "name": "S. Boldbaatar", "role": "Physics Teacher", "department": "Department of Physical Sciences", "password": "boldbaatar1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Boldbaatar" },
+  { "id": 8, "name": "Lavenia", "role": "English Teacher", "department": "Department of Social Sciences", "password": "lavenia1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Lavenia" },
+  { "id": 9, "name": "D. Munkhbaatar", "role": "English Teacher", "department": "Department of Social Sciences", "password": "munkhbaatar1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Munkhbaatar" },
+  { "id": 10, "name": "T. Lkhagvajargal", "role": "English Teacher", "department": "Department of Social Sciences", "password": "lkhagvajargal1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Lkhagvajargal" },
+  { "id": 11, "name": "T. Chantsalnyam", "role": "Sociology Teacher", "department": "Department of Social Sciences", "password": "chantsalnyam1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Chantsalnyam" },
+  { "id": 12, "name": "O. Usukhbaatar", "role": "IT Teacher", "department": "IT Department", "password": "usukhbaatar1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Usukhbaatar" },
+  { "id": 13, "name": "B. Barkhasbold", "role": "IT Teacher", "department": "IT Department", "password": "barkhasbold1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Barkhasbold" },
+  { "id": 14, "name": "S. Temuujin", "role": "IT Developer", "department": "IT Department", "password": "temuujin1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Temuujin" },
+  { "id": 15, "name": "E. Munkh-Orgil", "role": "IT Teacher", "department": "IT Department", "password": "munkhorgil1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=MunkhOrgil" },
+  { "id": 16, "name": "B. Orgil", "role": "IT Developer", "department": "IT Department", "password": "orgil1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Orgil" },
+  { "id": 17, "name": "N. Zunbileg", "role": "IT Developer", "department": "IT Department", "password": "zunbileg1234", "image": "https://api.dicebear.com/7.x/lorelei/svg?seed=Zunbileg" }
 ]
