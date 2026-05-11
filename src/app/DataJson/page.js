@@ -21,11 +21,11 @@ export default function Page() {
   );
 
   const jobColors = {
-    developer: { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(108,143,255,0.15)', labelText: '#6c8fff' },
-    designer:  { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#bf7fff' },
-    manager:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(127,255,159,0.15)', labelText: '#7fff9f' },
-    junior:    { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(255,207,127,0.15)', labelText: '#ffcf7f' },
-    teacher:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(127,255,255,0.15)', labelText: '#7fffff' },
+    developer: { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
+    designer:  { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
+    manager:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
+    junior:    { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
+    teacher:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
   };
 
   const getColors = (job) => jobColors[job] ?? jobColors.junior;
