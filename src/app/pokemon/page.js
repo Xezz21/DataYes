@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const POKEMON_COUNT = 1025; // Gen 1 — swap for a bigger number if you want more
+const POKEMON_COUNT = 1025; 
 const LIST_URL = `https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`;
 
 const TYPE_COLORS = {
@@ -17,7 +17,6 @@ const spriteUrl = (id) =>
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-// Reshape a raw PokéAPI detail response into the flat shape our UI uses.
 const mapDetail = (d) => ({
   id: d.id,
   name: d.name,
@@ -48,7 +47,6 @@ export default function Page() {
         if (!listRes.ok) throw new Error("Couldn't reach PokéAPI");
         const listJson = await listRes.json();
 
-        // fetch full detail for every entry in parallel (types, stats, etc.)
         const details = await Promise.all(
           listJson.results.map((p) => fetch(p.url).then((r) => r.json()))
         );
@@ -69,7 +67,6 @@ export default function Page() {
 
   const removePokemon = (id) => setPokemon((prev) => prev.filter((p) => p.id !== id));
 
-  // Instant client-side filter over the already-loaded list — no API calls.
   const filtered = pokemon.filter((p) =>
     p.name.toLowerCase().includes(search.trim().toLowerCase())
   );
@@ -321,7 +318,7 @@ export default function Page() {
 
           <div className="page-enter" style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
             <div>
-              <h1 className="section-title">Test</h1>
+              <h1 className="section-title">Pokemon api</h1>
               <p className="count-label">
                 {loading ? 'Loading Pokémon…' : `${pokemon.length} Pokémon (via PokéAPI)`}
               </p>
