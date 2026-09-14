@@ -255,13 +255,14 @@ export default function Home() {
             Zorigt
           </h1>
           <p className="hero-sub" style={{ color: '#666', fontSize: '1.05rem', marginBottom: '2rem', fontWeight: 300 }}>
-            Web Developer
+            Web Dev
           </p>
 
           <div className="hero-links" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="#projects" className="pill-btn">Work</a>
             <a href="#about" className="pill-btn">About</a>
             <Link href="/DataJson" className="pill-btn primary">Directory →</Link>
+            <Link href="/pokemon" className="pill-btn">Pokémon →</Link>
           </div>
         </div>
 
@@ -332,7 +333,7 @@ export default function Home() {
         </section>
 
         <footer>
-          <p>© 2025 ZORIGT — BUILT WITH NEXT.JS & TAILWIND CSS</p>
+          <p>© 2026 ZORIGT — BUILT WITH NEXT.JS & TAILWIND CSS</p>
         </footer>
 
       </div>
