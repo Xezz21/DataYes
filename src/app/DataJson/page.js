@@ -14,7 +14,7 @@ export default function Page() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  // close modal on Escape
+  // esc close
   useEffect(() => {
     if (!selected) return;
     const onKey = (e) => { if (e.key === 'Escape') setSelected(null); };
@@ -39,7 +39,6 @@ export default function Page() {
 
   const getColors = (job) => jobColors[job] ?? jobColors.junior;
 
-  // Fields we don't want to show twice / raw in the "extra details" list
   const HIDDEN_KEYS = new Set(['id', 'firstname', 'lastname', 'name', 'image', 'items', 'password']);
 
   const prettyLabel = (key) =>

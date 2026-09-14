@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const POKEMON_COUNT = 1025;
+const POKEMON_COUNT = 1025; // Gen 1 — swap for a bigger number if you want more
 const LIST_URL = `https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`;
 
 const TYPE_COLORS = {
@@ -17,7 +17,7 @@ const spriteUrl = (id) =>
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-// Huvirgalt
+// Reshape a raw PokéAPI detail response into the flat shape our UI uses.
 const mapDetail = (d) => ({
   id: d.id,
   name: d.name,
@@ -35,8 +35,6 @@ export default function Page() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +48,7 @@ export default function Page() {
         if (!listRes.ok) throw new Error("Couldn't reach PokéAPI");
         const listJson = await listRes.json();
 
-        // Bugdiin fetch
+        // fetch full detail for every entry in parallel (types, stats, etc.)
         const details = await Promise.all(
           listJson.results.map((p) => fetch(p.url).then((r) => r.json()))
         );
@@ -71,29 +69,10 @@ export default function Page() {
 
   const removePokemon = (id) => setPokemon((prev) => prev.filter((p) => p.id !== id));
 
-  // Zuvhun 1 Pokemon Fetch
-  async function handleSearch() {
-    const query = search.trim().toLowerCase();
-    if (!query) return;
-
-    setSearchLoading(true);
-    setSearchError(null);
-
-    try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${query}`);
-      if (!res.ok) throw new Error(`No Pokémon named "${query}"`);
-      const d = await res.json();
-      setSelected(mapDetail(d));
-    } catch (e) {
-      setSearchError(e.message || "Something went wrong");
-    } finally {
-      setSearchLoading(false);
-    }
-  }
-
-  function onSearchKeyDown(e) {
-    if (e.key === "Enter") handleSearch();
-  }
+  // Instant client-side filter over the already-loaded list — no API calls.
+  const filtered = pokemon.filter((p) =>
+    p.name.toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   const primaryColor = (types) => TYPE_COLORS[types[0]] || '#888';
 
@@ -159,26 +138,6 @@ export default function Page() {
         }
         .search-input::placeholder { color: #444; }
         .search-input:focus { border-color: rgba(255,255,255,0.2); }
-        .search-btn {
-          background: #fff;
-          color: #080808;
-          border: none;
-          border-radius: 999px;
-          padding: 0 1.1rem;
-          font-size: 0.8rem;
-          font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          transition: background 0.2s;
-          flex-shrink: 0;
-        }
-        .search-btn:hover { background: #ddd; }
-        .search-btn:disabled { opacity: 0.5; cursor: default; }
-        .search-error {
-          font-size: 0.72rem;
-          color: #d97777;
-          padding-left: 4px;
-        }
 
         .grid-layout {
           display: grid;
@@ -367,22 +326,13 @@ export default function Page() {
                 {loading ? 'Loading Pokémon…' : `${pokemon.length} Pokémon (via PokéAPI)`}
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '260px', width: '100%' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  className="search-input"
-                  type="text"
-                  placeholder="Look up a Pokémon (e.g. ditto)…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={onSearchKeyDown}
-                />
-                <button className="search-btn" onClick={handleSearch} disabled={searchLoading}>
-                  {searchLoading ? '…' : 'Go'}
-                </button>
-              </div>
-              {searchError && <span className="search-error">{searchError}</span>}
-            </div>
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search by name…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
           {loading && <div className="spinner-ring" />}
@@ -393,10 +343,10 @@ export default function Page() {
 
           {!loading && !error && (
             <div className="grid-layout">
-              {pokemon.length === 0 ? (
-                <div className="empty-state">No Pokémon loaded</div>
+              {filtered.length === 0 ? (
+                <div className="empty-state">No results for "{search}"</div>
               ) : (
-                pokemon.map((p, i) => {
+                filtered.map((p, i) => {
                   const color = primaryColor(p.types);
                   return (
                     <div
