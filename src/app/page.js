@@ -263,6 +263,7 @@ export default function Home() {
             <a href="#about" className="pill-btn">About</a>
             <Link href="/DataJson" className="pill-btn primary">Directory →</Link>
             <Link href="/pokemon" className="pill-btn">Pokémon →</Link>
+            <Link href="/blackjack" className="pill-btn">Blackjack →</Link>
           </div>
         </div>
 
