@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const POKEMON_COUNT = 1025; 
+const POKEMON_COUNT = 100; 
 const LIST_URL = `https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_COUNT}`;
 
 const TYPE_COLORS = {

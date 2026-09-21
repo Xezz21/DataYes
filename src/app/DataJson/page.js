@@ -1,7 +1,41 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import data from '../../utils/data.json';
 import teachers from '../../utils/teachers.json';
+
+function calcAge(birth_date) {
+  if (!birth_date) return '—';
+  const b = new Date(birth_date);
+  if (isNaN(b)) return '—';
+  const diff = Date.now() - b.getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+}
+
+function avatarFor(email) {
+  return `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(email)}`;
+}
+
+// Static entries from data.json / teachers.json have NUMERIC ids.
+// Registered users (from users.json via the API) have STRING ids like "u-email@x.com".
+// This check is safe for both.
+const isRegistered = (item) =>
+  typeof item?.id === "string" && item.id.startsWith("u-");
+
+// Deletes a registered user from users.json through the API.
+// Returns true on success, false on any failure.
+async function deleteRegisteredUser(email) {
+  try {
+    const res = await fetch("/api/users/register", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const result = await res.json();
+    return Boolean(result.success);
+  } catch {
+    return false;
+  }
+}
 
 export default function Page() {
   const [students, setStudents] = useState(data);
@@ -9,18 +43,85 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState("students");
   const [search, setSearch] = useState("");
   const [openItems, setOpenItems] = useState(null);
-  const [mounted, setMounted] = useState(false);
   const [selected, setSelected] = useState(null); // { type: 'student' | 'teacher', data: {...} }
 
-  useEffect(() => { setMounted(true); }, []);
+  // register modal
+  const [showRegister, setShowRegister] = useState(false);
+  const [regForm, setRegForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    birth_date: "",
+    type: "student",
+  });
+  const [regError, setRegError] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+
+  // ---- load registered users from the API and merge them in ----
+  const loadRegisteredUsers = useCallback(async () => {
+    try {
+      const res = await fetch("/api/users/register");
+      const result = await res.json();
+      if (!result.success) return;
+
+      const regStudents = result.users
+        .filter((u) => u.type === "student")
+        .map((u) => ({
+          id: `u-${u.email}`,
+          firstname: u.firstName,
+          lastname: u.lastName,
+          email: u.email,
+          image: avatarFor(u.email),
+          age: calcAge(u.birth_date),
+          height: "—",
+          role: "student",
+          items: [],
+        }));
+
+      const regTeachers = result.users
+        .filter((u) => u.type === "teacher")
+        .map((u) => ({
+          id: `u-${u.email}`,
+          name: `${u.firstName} ${u.lastName}`,
+          image: avatarFor(u.email),
+          role: "Teacher",
+          department: "—",
+          email: u.email,
+        }));
+
+      setStudents((prev) => {
+        const existing = new Set(prev.map((p) => p.email));
+        const toAdd = regStudents.filter((s) => !existing.has(s.email));
+        return [...prev, ...toAdd];
+      });
+
+      setTeacherList((prev) => {
+        const existing = new Set(prev.map((t) => t.email));
+        const toAdd = regTeachers.filter((t) => !existing.has(t.email));
+        return [...prev, ...toAdd];
+      });
+    } catch {
+      // ignore — page still works with static data
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRegisteredUsers();
+  }, [loadRegisteredUsers]);
 
   // esc close
   useEffect(() => {
-    if (!selected) return;
-    const onKey = (e) => { if (e.key === 'Escape') setSelected(null); };
+    if (!selected && !showRegister) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setSelected(null);
+        setShowRegister(false);
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected]);
+  }, [selected, showRegister]);
 
   const filteredStudents = students.filter(p =>
     `${p.firstname} ${p.lastname}`.toLowerCase().includes(search.toLowerCase())
@@ -35,11 +136,12 @@ export default function Page() {
     manager:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
     junior:    { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
     teacher:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
+    student:   { bg: '#111111', border: 'rgba(255,255,255,0.07)', label: 'rgba(191,127,255,0.15)', labelText: '#ffffff' },
   };
 
-  const getColors = (job) => jobColors[job] ?? jobColors.junior;
+  const getColors = (role) => jobColors[String(role).toLowerCase()] ?? jobColors.junior;
 
-  const HIDDEN_KEYS = new Set(['id', 'firstname', 'lastname', 'name', 'image', 'items', 'password']);
+  const HIDDEN_KEYS = new Set(['id', 'firstname', 'lastname', 'name', 'image', 'items', 'password', 'alive']);
 
   const prettyLabel = (key) =>
     key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
@@ -50,6 +152,58 @@ export default function Page() {
     if (val === null || val === undefined || val === '') return '—';
     return String(val);
   };
+
+  function handleRegChange(e) {
+    setRegForm({ ...regForm, [e.target.name]: e.target.value });
+  }
+
+  async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    setRegError("");
+    setRegLoading(true);
+
+    try {
+      const res = await fetch("/api/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(regForm),
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        setRegError(result.message || "Алдаа гарлаа");
+        return;
+      }
+
+      // re-pull the full list from the API instead of hand-building
+      // the new entry twice — keeps this in sync with users.json
+      await loadRegisteredUsers();
+
+      setRegForm({ firstName: "", lastName: "", email: "", password: "", birth_date: "", type: "student" });
+      setShowRegister(false);
+    } catch {
+      setRegError("Сервертэй холбогдоход алдаа гарлаа");
+    } finally {
+      setRegLoading(false);
+    }
+  }
+
+  // ---- delete handlers ----
+  async function handleDeleteStudent(p) {
+    // only registered users can be removed; static data.json entries are protected
+    if (!isRegistered(p)) return;
+    const ok = await deleteRegisteredUser(p.email);
+    if (!ok) return;
+    setStudents((prev) => prev.filter((s) => s.id !== p.id));
+    if (openItems === p.id) setOpenItems(null);
+  }
+
+  async function handleDeleteTeacher(t) {
+    if (!isRegistered(t)) return;
+    const ok = await deleteRegisteredUser(t.email);
+    if (!ok) return;
+    setTeacherList((prev) => prev.filter((x) => x.id !== t.id));
+  }
 
   return (
     <>
@@ -174,6 +328,22 @@ export default function Page() {
           color: #555;
         }
         .tab-inactive:hover { color: #aaa; border-color: rgba(255,255,255,0.14); }
+
+        .add-btn {
+          padding: 0.5rem 1.25rem;
+          border-radius: 999px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          font-family: 'Syne', sans-serif;
+          border: 1px solid #fff;
+          background: #fff;
+          color: #080808;
+          cursor: pointer;
+          transition: all 0.2s;
+          letter-spacing: 0.03em;
+          margin-left: auto;
+        }
+        .add-btn:hover { background: #e5e5e5; }
 
         .items-panel {
           animation: slideDown 0.25s ease both;
@@ -382,6 +552,57 @@ export default function Page() {
           color: #666;
           text-align: center;
         }
+
+        /* register form */
+        .form-label {
+          display: block;
+          font-size: 0.65rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #555;
+          margin-bottom: 6px;
+          font-family: 'Syne', sans-serif;
+        }
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+        }
+        .form-field { margin-bottom: 1rem; }
+        .form-input {
+          background: #0c0c0c;
+          border: 1px solid rgba(255,255,255,0.08);
+          color: #f0f0f0;
+          padding: 0.625rem 0.875rem;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          font-family: 'DM Sans', sans-serif;
+          outline: none;
+          transition: border-color 0.2s;
+          width: 100%;
+        }
+        .form-input::placeholder { color: #444; }
+        .form-input:focus { border-color: rgba(255,255,255,0.25); }
+        .form-error {
+          color: #ff6060;
+          font-size: 0.75rem;
+          margin-bottom: 1rem;
+        }
+        .form-submit {
+          width: 100%;
+          padding: 0.75rem;
+          border-radius: 999px;
+          font-family: 'Syne', sans-serif;
+          font-weight: 700;
+          font-size: 0.85rem;
+          border: 1px solid #fff;
+          background: #fff;
+          color: #080808;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .form-submit:hover { background: #e5e5e5; }
+        .form-submit:disabled { opacity: 0.5; cursor: not-allowed; }
       `}</style>
 
       <main style={{ minHeight: '100vh', background: '#080808', padding: '2.5rem 1.5rem' }}>
@@ -415,15 +636,18 @@ export default function Page() {
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            <button className="add-btn" onClick={() => setShowRegister(true)}>
+              + Add User
+            </button>
           </div>
 
           {/* students */}
           {activeTab === 'students' && (
             <div className="grid-layout">
               {filteredStudents.length === 0
-                ? <div className="empty-state"><span>◌</span>No results for "{search}"</div>
+                ? <div className="empty-state"><span>◌</span>No results for &quot;{search}&quot;</div>
                 : filteredStudents.map((p, i) => {
-                    const c = getColors(p.job);
+                    const c = getColors(p.role);
                     return (
                       <div
                         key={p.id}
@@ -435,7 +659,7 @@ export default function Page() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.875rem' }}>
                           <img src={p.image} alt={p.firstname} className="avatar-img" />
                           <span className="job-badge" style={{ background: c.label, color: c.labelText }}>
-                            {p.job}
+                            {p.role}
                           </span>
                         </div>
 
@@ -451,7 +675,7 @@ export default function Page() {
                           className="btn-ghost"
                           onClick={(e) => { e.stopPropagation(); setOpenItems(openItems === p.id ? null : p.id); }}
                         >
-                          {openItems === p.id ? '↑ Hide items' : `↓ Items (${p.items.length})`}
+                          {openItems === p.id ? '↑ Hide items' : `↓ Items (${p.items?.length ?? 0})`}
                         </button>
 
                         {openItems === p.id && (
@@ -460,7 +684,7 @@ export default function Page() {
                             style={{ display: 'flex', gap: '8px', padding: '0.75rem', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', marginBottom: '0.5rem', flexWrap: 'wrap' }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {p.items.map(item => (
+                            {(p.items ?? []).map(item => (
                               <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                                 <img src={item.image} alt={item.name} style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'cover' }} />
                                 <span style={{ fontSize: '0.65rem', color: '#444' }}>{item.name}</span>
@@ -469,12 +693,14 @@ export default function Page() {
                           </div>
                         )}
 
-                        <button
-                          className="btn-delete"
-                          onClick={(e) => { e.stopPropagation(); setStudents(students.filter(s => s.id !== p.id)); }}
-                        >
-                          Remove
-                        </button>
+                        {isRegistered(p) && (
+                          <button
+                            className="btn-delete"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteStudent(p); }}
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -485,7 +711,7 @@ export default function Page() {
           {activeTab === 'teachers' && (
             <div className="grid-layout">
               {filteredTeachers.length === 0
-                ? <div className="empty-state"><span>◌</span>No results for "{search}"</div>
+                ? <div className="empty-state"><span>◌</span>No results for &quot;{search}&quot;</div>
                 : filteredTeachers.map((t, i) => {
                     const c = getColors('teacher');
                     return (
@@ -506,12 +732,14 @@ export default function Page() {
                         <div style={{ fontSize: '0.72rem', color: '#555', marginBottom: '2px' }}>{t.role}</div>
                         <div style={{ fontSize: '0.68rem', color: '#333', marginBottom: '0.875rem' }}>{t.department}</div>
 
-                        <button
-                          className="btn-delete"
-                          onClick={(e) => { e.stopPropagation(); setTeacherList(teacherList.filter(x => x.id !== t.id)); }}
-                        >
-                          Remove
-                        </button>
+                        {isRegistered(t) && (
+                          <button
+                            className="btn-delete"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteTeacher(t); }}
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -537,9 +765,9 @@ export default function Page() {
                 ? `${selected.data.firstname} ${selected.data.lastname}`
                 : selected.data.name}
             </div>
-            {selected.data.job && (
+            {selected.type === 'student' && selected.data.role && (
               <span className="job-badge" style={{ background: 'rgba(191,127,255,0.15)', color: '#fff' }}>
-                {selected.data.job}
+                {selected.data.role}
               </span>
             )}
             {selected.type === 'teacher' && selected.data.role && (
@@ -573,6 +801,104 @@ export default function Page() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* register modal */}
+      {showRegister && (
+        <div className="modal-overlay" onClick={() => setShowRegister(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowRegister(false)}>✕</button>
+
+            <div className="modal-name">New user</div>
+            <p className="count-label" style={{ marginBottom: '1.5rem' }}>Register a student or teacher</p>
+
+            <form onSubmit={handleRegisterSubmit}>
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="form-label">First name</label>
+                  <input
+                    className="form-input"
+                    name="firstName"
+                    value={regForm.firstName}
+                    onChange={handleRegChange}
+                    placeholder="Anand"
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Last name</label>
+                  <input
+                    className="form-input"
+                    name="lastName"
+                    value={regForm.lastName}
+                    onChange={handleRegChange}
+                    placeholder="Amarzaya"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">Email</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  name="email"
+                  value={regForm.email}
+                  onChange={handleRegChange}
+                  placeholder="name@gmail.com"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-label">Password</label>
+                <input
+                  className="form-input"
+                  type="password"
+                  name="password"
+                  value={regForm.password}
+                  onChange={handleRegChange}
+                  placeholder="••••••"
+                  minLength={6}
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label className="form-label">Birth date</label>
+                  <input
+                    className="form-input"
+                    type="date"
+                    name="birth_date"
+                    value={regForm.birth_date}
+                    onChange={handleRegChange}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Type</label>
+                  <select
+                    className="form-input"
+                    name="type"
+                    value={regForm.type}
+                    onChange={handleRegChange}
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                  </select>
+                </div>
+              </div>
+
+              {regError && <div className="form-error">{regError}</div>}
+
+              <button type="submit" className="form-submit" disabled={regLoading}>
+                {regLoading ? 'Registering…' : 'Register'}
+              </button>
+            </form>
           </div>
         </div>
       )}
