@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
-
-const USERS_FILE = path.join(process.cwd(), "src", "utils", "users.json");
+import { Redis } from "@upstash/redis";
 
 export const USER_TYPES = {
   STUDENT: "student",
@@ -20,6 +19,32 @@ export const USER_TYPES = {
  * @property {string} created_at - ISO огноо, автоматаар үүснэ
  */
 
+// ---------- Storage ----------
+//
+// On Vercel the project folder is read-only, so users are stored in Upstash Redis.
+// Locally (no Redis env vars) we fall back to src/utils/users.json.
+
+const REDIS_URL =
+  process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+const REDIS_TOKEN =
+  process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+
+const redis =
+  REDIS_URL && REDIS_TOKEN
+    ? new Redis({ url: REDIS_URL, token: REDIS_TOKEN })
+    : null;
+
+const USERS_KEY = "users";
+const USERS_FILE = path.join(process.cwd(), "src", "utils", "users.json");
+
+function assertStorageAvailable() {
+  if (!redis && process.env.VERCEL) {
+    throw new Error(
+      "Storage тохируулаагүй байна: Vercel дээр Upstash Redis холбоод дахин deploy хийнэ үү"
+    );
+  }
+}
+
 // ---------- Validation ----------
 
 export function validateUser({ firstName, lastName, email, password, birth_date, type }) {
@@ -35,7 +60,7 @@ export function validateUser({ firstName, lastName, email, password, birth_date,
   return errors;
 }
 
-// ---------- File I/O ----------
+// ---------- File I/O (local dev only) ----------
 
 function ensureFile() {
   const dir = path.dirname(USERS_FILE);
@@ -47,7 +72,7 @@ function ensureFile() {
   }
 }
 
-export function getUsers() {
+function readFileUsers() {
   ensureFile();
   const raw = fs.readFileSync(USERS_FILE, "utf-8");
   try {
@@ -58,9 +83,31 @@ export function getUsers() {
   }
 }
 
-function saveUsers(users) {
+function writeFileUsers(users) {
   ensureFile();
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+}
+
+// ---------- Storage-agnostic read / write ----------
+
+export async function getUsers() {
+  assertStorageAvailable();
+
+  if (redis) {
+    const stored = await redis.get(USERS_KEY);
+    return Array.isArray(stored) ? stored : [];
+  }
+  return readFileUsers();
+}
+
+async function saveUsers(users) {
+  assertStorageAvailable();
+
+  if (redis) {
+    await redis.set(USERS_KEY, users);
+    return;
+  }
+  writeFileUsers(users);
 }
 
 // ---------- Core actions ----------
@@ -71,7 +118,7 @@ export async function createUser(data) {
     throw new Error(errors.join(", "));
   }
 
-  const users = getUsers();
+  const users = await getUsers();
 
   const emailExists = users.some(
     (u) => u.email.toLowerCase() === data.email.toLowerCase()
@@ -94,15 +141,15 @@ export async function createUser(data) {
   };
 
   users.push(newUser);
-  saveUsers(users);
+  await saveUsers(users);
 
   // password-г client рүү буцаахгүй
   const { password: _omit, ...safeUser } = newUser;
   return safeUser;
 }
 
-export function deleteUser(email) {
-  const users = getUsers();
+export async function deleteUser(email) {
+  const users = await getUsers();
   const filtered = users.filter(
     (u) => u.email.toLowerCase() !== email.toLowerCase()
   );
@@ -111,5 +158,5 @@ export function deleteUser(email) {
     throw new Error("Хэрэглэгч олдсонгүй");
   }
 
-  saveUsers(filtered);
+  await saveUsers(filtered);
 }

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     // never send password hashes to the browser
-    const users = getUsers().map(({ password, ...safe }) => safe);
+    const users = (await getUsers()).map(({ password, ...safe }) => safe);
     return NextResponse.json({ success: true, users });
   } catch (err) {
     return NextResponse.json(
@@ -44,7 +44,7 @@ export async function DELETE(request) {
         { status: 400 }
       );
     }
-    deleteUser(email);
+    await deleteUser(email);
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json(
